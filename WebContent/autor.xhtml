@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+	<ui:composition template="_template.xhtml">
+	
+		<f:metadata>
+			<f:viewParam name="autorId" value="#{autorBean.autorId}"/>
+			<f:viewAction action="#{autorBean.carregarAutorPeloId}" if="#{param.autorId != null}"/> <!-- o if verifica se foi passado o autorId, caso contrário, dá o erro HTTP Status 500 - java.lang.IllegalArgumentException: id to load is required for loading -->
+		</f:metadata>
+		
+		<ui:define name="titulo">
+			<p:outputPanel>Novo Autor</p:outputPanel>
+		</ui:define>
+		<ui:define name="conteudo">
+			<h:form id="autor">
+				<p:fieldset legend="Dados do Autor">
+					<h:panelGrid columns="3">
+						<p:outputLabel value="Nome:" for="nome" />
+						<p:inputText id="nome" value="#{autorBean.autor.nome}" required="true" requiredMessage="Nome é obrigatório"/>
+						<p:message for="nome"/>
+						
+						<p:outputLabel value="Email:" for="email" />
+						<p:inputText id="email" value="#{autorBean.autor.email}" required="true" requiredMessage="Email é obrigatório" validatorMessage="Email inválido">
+						<!-- O JSF não dá suporte a atributos do HTML5 como o type="email"
+							 Como o JSF não tem uma tag do tipo <h:inputEmail quando a página é renderizada, ao inspecioná-la no navegador, vemos que o tipo desse campo está como type="text"
+						     Usando a propriedade  f:passThroughAttribute o JSF passa o type="email" para o html que é renderizado, dessa forma, passa a ter as validações de email (client side)  
+						-->
+							
+							<f:attribute name="type" value="email"/> 
+							<f:passThroughAttribute name="placeholder" value="Email do Autor"/>
+							<f:validateRegex pattern=".+@.+" />
+							<f:ajax event="blur" render="messageEmail"/>						
+						</p:inputText>
+						<p:message for="email" id="messageEmail"/><br/>
+						<h:panelGrid columns="2">
+							<p:commandButton value="Gravar" action="#{autorBean.gravar}" update="@form :formTabelaAutores" process="@form"/>
+							<p:commandButton value="Voltar" action="livro?faces-redirect=true" immediate="true"/>
+						</h:panelGrid>
+					</h:panelGrid>
+				</p:fieldset>
+			</h:form><br/>
+			
+			<h:form id="formTabelaAutores">
+			
+			   <p:dataList value="#{livroBean.autores}" var="autor" type="definition">
+			       <f:facet name="header">
+			           Autores
+			       </f:facet>
+			       
+			       <p:commandButton icon="fa fa-fw fa-edit" action="#{autorBean.carregarAutor(autor)}" update=":autor"/><!-- Nesse caso não precisa colocar o atributo process pq só é pra submeter essa linha mesmo, que chama o carregarAutor -->
+			       <p:commandButton icon="fa fa-fw fa-remove" action="#{autorBean.remover(autor)}" update="@form"/>
+			       
+			       #{autor.nome} - #{autor.email}
+			   </p:dataList>
+				
+			</h:form>
+			
+						
+		</ui:define>
+		<ui:define name="texto">
+			Cadastro de Autores
+		</ui:define>		
+	</ui:composition>
+</html>
